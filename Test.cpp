@@ -10,6 +10,8 @@
 #include <cstdio>
 #include <cmath>
 #include <sstream>
+#include <fstream>
+#include <string.h>
 #define MOD 1000000007
 #define INF 2000000000
 using namespace std;
@@ -134,8 +136,8 @@ class BigNum {
                     ans.integerPart[i + 1]--;
                 }
         }
-        while (!ans.integerPart.back()) ans.integerPart.pop_back();
-        if (fractionPart.empty())
+        while (ans.integerPart.size() > 1 && !ans.integerPart.back()) ans.integerPart.pop_back();
+        if (ans.fractionPart.empty())
             return ans;
         if (ans.sign == -1) {
             if (isNegative) {
@@ -145,15 +147,26 @@ class BigNum {
                 ans.fractionPart[0] = 10 - ans.fractionPart[0];
                 for (int i = 1; i < ans.fractionPart.size(); i++)
                     ans.fractionPart[i] = 9 - ans.fractionPart[i];
+                vector<int>tmp = ans.fractionPart;
+                ans.fractionPart = {};
                 ans = ans + 1ll;
+                ans.sign = -1;
+                ans.fractionPart = tmp;
             }
         }
         else {
             if (isNegative) {
+                if (ans.integerPart.size() == 1 && ans.integerPart[0] == 0) {
+                    ans.sign = -1;
+                    return ans;
+                }
                 ans.fractionPart[0] = 10 - ans.fractionPart[0];
                 for (int i = 1; i < ans.fractionPart.size(); i++)
                     ans.fractionPart[i] = 9 - ans.fractionPart[i];
+                vector<int>tmp = ans.fractionPart;
+                ans.fractionPart = {};
                 ans = ans - 1ll;
+                ans.fractionPart = tmp;
             }
             else {
                 return ans;
@@ -167,19 +180,18 @@ public:
         sign = 1;
         if (number.empty())
             return;
-        string num = number + '.';
-        if (num[0] == '-') {
+        if (number[0] == '-') {
             sign = -1;
-            num.erase(num.begin());
         }
-        stringstream ss(num);
+        stringstream ss(number);
         string tmp;
         vector<string>res;
         while (getline(ss, tmp, '.')) res.emplace_back(tmp);
 
-        if (res.size() > 2 || (res.size() == 2 && res[1] == "")) throw - 1;
+        if (res.size() > 2 || (res.size() == 2 && res[1] == "")) throw 1;
         if (res.size() == 1) res.emplace_back("");
         if (res[0] == "") res[0] = "0";
+        if (res[0][0] == '-') res[0].erase(res[0].begin());
         string strInt = res[0], strFrac = res[1];
 
         int intLen = strInt.length(), fracLen = strFrac.length();
@@ -243,7 +255,7 @@ public:
             fracPart = fracPart * (10.0) - (int)(fracPart * 10.0);
         }
     }
-    void show()
+    /*void show()
     {
         if (sign == -1) printf("-");
         for (int i = integerPart.size() - 1; i >= 0; i--)
@@ -257,7 +269,9 @@ public:
             printf("%d", fractionPart[i]);
         printf("\n");
         return;
-    }
+    }*/
+
+    //÷ÿ‘ÿ‘ÀÀ„∑˚
     /*BigNum& operator = (const long long int& number) {
         isNegative = number < 0;
         long long num;
@@ -269,7 +283,6 @@ public:
         }
         return *this;
     }*/
-
     /*const BigNum operator + (const long long int& a) const {
         BigNum tmp = a;
         return plus(*this, tmp);
@@ -295,15 +308,30 @@ public:
         *this = addition(*this, a);
         return *this;
     }
-
+    friend inline ostream& operator <<(ostream& out, const BigNum& num);
 };
+inline ostream& operator << (ostream& out, const BigNum& num) {
+    if (num.sign == -1) out << "-";
+    for (int i = num.integerPart.size() - 1; i >= 0; i--)
+        out << num.integerPart[i];
+    if (num.fractionPart.empty()) {
+        return out;
+    }
+    out << ".";
+    for (int i = num.fractionPart.size() - 1; i >= 0; i--)
+        out << num.fractionPart[i];
+    return out;
+}
 int main()
 {
     string num1;
     string num2;
-    while (cin >> num1 >> num2) {
+    ifstream in("TestData.in");
+    ofstream out("ResData.out");
+    while (in >> num1 >> num2) {
         BigNum ans = num1;
         ans += num2;
-        ans.show();
+        out << ans << endl;
+        cout << ans << endl;
     }
 }

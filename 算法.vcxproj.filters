@@ -15,6 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ResData.out">
+      <Filter>头文件\源文件</Filter>
+    </None>
+    <None Include="TestData.in">
+      <Filter>头文件\源文件</Filter>
+    </None>
+    <None Include="TestData.out">
+      <Filter>头文件\源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Test.cpp">
       <Filter>头文件\源文件</Filter>
     </ClCompile>
