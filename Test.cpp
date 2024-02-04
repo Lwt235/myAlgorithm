@@ -174,8 +174,33 @@ class BigNum {
         }
         return ans;
     }
+    BigNum multiplication(const BigNum& a, const BigNum& b) const {
+        BigNum ans;
+        ans.sign = a.sign * b.sign;
+        vector<int>aFull = a.fractionPart, bFull = b.fractionPart;
+        for (int i = 0; i < a.integerPart.size(); i++)
+            aFull.emplace_back(a.integerPart[i]);
+        for (int i = 0; i < b.integerPart.size(); i++)
+            bFull.emplace_back(b.integerPart[i]);
+        vector<int>res(aFull.size() + bFull.size());
+        for (int i = 0; i < aFull.size(); i++)
+            for (int j = 0; j < bFull.size(); j++)
+                res[i + j] += aFull[i] * bFull[j];
+        for (int i = 0; i < res.size() - 1; i++)
+            if (res[i] >= 10) {
+                res[i + 1] += res[i] / 10;
+                res[i] %= 10;
+            }
+        for (int i = 0; i < a.fractionPart.size() + b.fractionPart.size(); i++)
+            ans.fractionPart.emplace_back(res[i]);
+        for (int i = a.fractionPart.size() + b.fractionPart.size(); i < res.size(); i++)
+            ans.integerPart.emplace_back(res[i]);
+        while (ans.integerPart.size() > 1 && !ans.integerPart.back()) ans.integerPart.pop_back();
+        return ans;
+    }
 
 public:
+    //针对各类型的构造函数
     BigNum(const string& number = "") {
         sign = 1;
         if (number.empty())
@@ -210,21 +235,6 @@ public:
             num /= 10;
         }
     }
-    /*template<typename T>
-    BigNum(T& number) {
-        isNegative = number < 0;
-        T num = isNegative ? -number : number;
-        long long intPart = (long long)num;
-        T fracPart = num - intPart * 1.0L;
-        while (intPart) {
-            integerPart.emplace_back(intPart % 10);
-            intPart /= 10;
-        }
-        while (fracPart >= 1e-20L) {
-            fractionPart.emplace(fractionPart.begin(), (int)fracPart);
-            fracPart = fracPart * (10.0L) - (int)(fracPart * 10.0L);
-        }
-    }*/
     BigNum(const long double& number) {
         sign = number < 0 ? -1 : 1;
         long double num = sign * number;
@@ -255,38 +265,8 @@ public:
             fracPart = fracPart * (10.0) - (int)(fracPart * 10.0);
         }
     }
-    /*void show()
-    {
-        if (sign == -1) printf("-");
-        for (int i = integerPart.size() - 1; i >= 0; i--)
-            printf("%d", integerPart[i]);
-        if (fractionPart.empty()) {
-            printf("\n");
-            return;
-        }
-        printf(".");
-        for (int i = fractionPart.size() - 1; i >= 0; i--)
-            printf("%d", fractionPart[i]);
-        printf("\n");
-        return;
-    }*/
 
     //重载运算符
-    /*BigNum& operator = (const long long int& number) {
-        isNegative = number < 0;
-        long long num;
-        num = number < 0 ? -number : number;
-        vector<int>().swap(integerPart);
-        while (num) {
-            integerPart.emplace_back(num % 10);
-            num /= 10;
-        }
-        return *this;
-    }*/
-    /*const BigNum operator + (const long long int& a) const {
-        BigNum tmp = a;
-        return plus(*this, tmp);
-    }*/
     bool operator <(const BigNum& a) const { return bigNumCompare(*this, a) < 0; }
     bool operator >(const BigNum& a) const { return bigNumCompare(*this, a) > 0; }
     bool operator <=(const BigNum& a) const { return bigNumCompare(*this, a) <= 0; }
@@ -308,7 +288,19 @@ public:
         *this = addition(*this, a);
         return *this;
     }
+    BigNum& operator -= (const BigNum& a) {
+        *this = addition(*this, -a);
+        return *this;
+    }
+    const BigNum operator * (const BigNum& a) const {
+        return multiplication(*this, a);
+    }
+    BigNum& operator *= (const BigNum& a) {
+        *this = multiplication(*this, a);
+        return *this;
+    }
     friend inline ostream& operator <<(ostream& out, const BigNum& num);
+    friend inline istream& operator >>(istream& in, BigNum& num);
 };
 inline ostream& operator << (ostream& out, const BigNum& num) {
     if (num.sign == -1) out << "-";
@@ -322,16 +314,20 @@ inline ostream& operator << (ostream& out, const BigNum& num) {
         out << num.fractionPart[i];
     return out;
 }
+inline istream& operator >> (istream& in, BigNum& num) {
+    string str;
+    in >> str;
+    num = BigNum(str);
+    return in;
+}
 int main()
 {
-    string num1;
-    string num2;
+    BigNum num1, num2;
     ifstream in("TestData.in");
     ofstream out("ResData.out");
     while (in >> num1 >> num2) {
-        BigNum ans = num1;
-        ans += num2;
+        BigNum ans = num1 * num2;
         out << ans << endl;
-        cout << ans << endl;
+        //cout << ans << endl;
     }
 }
