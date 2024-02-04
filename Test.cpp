@@ -54,25 +54,48 @@ class BigNum {
 
     BigNum addition(const BigNum& a, const BigNum& b) const {
         BigNum ans;
+        ans.sign = 1;
         int n = a.fractionPart.size(), m = b.fractionPart.size(), Min = min(n, m), Max = max(n, m);
+        bool isNegative = false;
         if (n != 0 || m != 0) {
-            ans.fractionPart.resize(Max, 0);
+            vector<int>(Max, 0).swap(ans.fractionPart);
+            //ans.fractionPart.resize(Max, 0);
             for (int i = 0; i < n - Min; i++)
-                ans.fractionPart[i] += a.fractionPart[i];
+                ans.fractionPart[i] += a.sign * a.fractionPart[i];
             for (int i = 0; i < m - Min; i++)
-                ans.fractionPart[i] += b.fractionPart[i];
+                ans.fractionPart[i] += b.sign * b.fractionPart[i];
             for (int i = 0; i < Min; i++)
-                ans.fractionPart[i + Max - Min] += a.fractionPart[n - Min + i] + b.fractionPart[m - Min + i];
+                ans.fractionPart[i + Max - Min] += a.sign * a.fractionPart[n - Min + i] + b.sign * b.fractionPart[m - Min + i];
 
             for (int i = 0; i < Max - 1; i++)
                 if (ans.fractionPart[i] >= 10) {
                     ans.fractionPart[i] -= 10;
                     ans.fractionPart[i + 1]++;
                 }
+                else if (ans.fractionPart[i] < 0) {
+                    ans.fractionPart[i] += 10;
+                    ans.fractionPart[i + 1]--;
+                }
+            
             if (ans.fractionPart.back() >= 10) {
                 ans.fractionPart.back() -= 10;
                 if (ans.integerPart.size() == 0) ans.integerPart.emplace_back(1);
                 else ans.integerPart[0]++;
+            }
+            else if (ans.fractionPart.back() <= -10) {
+                ans.fractionPart.back() += 10;
+                if (ans.integerPart.size() == 0) ans.integerPart.emplace_back(-1);
+                else ans.integerPart[0]--;
+            }
+            if (ans.fractionPart.back() < 0) {
+                isNegative = true;
+                for (int i = 0; i < Max; i++)
+                    ans.fractionPart[i] = -ans.fractionPart[i];
+                for (int i = 0; i < Max - 1; i++)
+                    if (ans.fractionPart[i] < 0) {
+                        ans.fractionPart[i] += 10;
+                        ans.fractionPart[i + 1]--;
+                    }
             }
             while (!ans.fractionPart.empty() && !ans.fractionPart[0])
                 ans.fractionPart.erase(ans.fractionPart.begin());
@@ -81,20 +104,60 @@ class BigNum {
         n = a.integerPart.size(), m = b.integerPart.size(), Min = min(n, m), Max = max(n, m);
         ans.integerPart.resize(Max, 0);
         for (int i = 0; i < Min; i++)
-            ans.integerPart[i] += a.integerPart[i] + b.integerPart[i];
+            ans.integerPart[i] += a.sign * a.integerPart[i] + b.sign * b.integerPart[i];
         for (int i = Min; i < n; i++)
-            ans.integerPart[i] += a.integerPart[i];
+            ans.integerPart[i] += a.sign * a.integerPart[i];
         for (int i = Min; i < m; i++)
-            ans.integerPart[i] += b.integerPart[i];
+            ans.integerPart[i] += b.sign * b.integerPart[i];
 
         for (int i = 0; i < Max - 1; i++)
             if (ans.integerPart[i] >= 10) {
                 ans.integerPart[i] -= 10;
                 ans.integerPart[i + 1]++;
             }
+            else if (ans.integerPart[i] < 0) {
+
+                ans.integerPart[i] += 10;
+                ans.integerPart[i + 1]--;
+            }
         if (ans.integerPart.back() >= 10) {
             ans.integerPart.back() -= 10;
             ans.integerPart.emplace_back(1);
+        }
+        else if (ans.integerPart.back() < 0) {
+            ans.sign = -1;
+            for (int i = 0; i < Max; i++)
+                ans.integerPart[i] = -ans.integerPart[i];
+            for (int i = 0; i < Max - 1; i++)
+                if (ans.integerPart[i] < 0) {
+                    ans.integerPart[i] += 10;
+                    ans.integerPart[i + 1]--;
+                }
+        }
+        while (!ans.integerPart.back()) ans.integerPart.pop_back();
+        if (fractionPart.empty())
+            return ans;
+        if (ans.sign == -1) {
+            if (isNegative) {
+                return ans;
+            }
+            else {
+                ans.fractionPart[0] = 10 - ans.fractionPart[0];
+                for (int i = 1; i < ans.fractionPart.size(); i++)
+                    ans.fractionPart[i] = 9 - ans.fractionPart[i];
+                ans = ans + 1ll;
+            }
+        }
+        else {
+            if (isNegative) {
+                ans.fractionPart[0] = 10 - ans.fractionPart[0];
+                for (int i = 1; i < ans.fractionPart.size(); i++)
+                    ans.fractionPart[i] = 9 - ans.fractionPart[i];
+                ans = ans - 1ll;
+            }
+            else {
+                return ans;
+            }
         }
         return ans;
     }
@@ -114,8 +177,9 @@ public:
         vector<string>res;
         while (getline(ss, tmp, '.')) res.emplace_back(tmp);
 
-        if (res.size() > 2) throw -1;
+        if (res.size() > 2 || (res.size() == 2 && res[1] == "")) throw - 1;
         if (res.size() == 1) res.emplace_back("");
+        if (res[0] == "") res[0] = "0";
         string strInt = res[0], strFrac = res[1];
 
         int intLen = strInt.length(), fracLen = strFrac.length();
@@ -218,6 +282,14 @@ public:
     bool operator !=(const BigNum& a) const { return bigNumCompare(*this, a) != 0; }
     const BigNum operator + (const BigNum& a) const {
         return addition(*this, a);
+    }
+    const BigNum operator - () const {
+        BigNum res = *this;
+        res.sign *= -1;
+        return res;
+    }
+    const BigNum operator - (const BigNum& a) const {
+        return addition(*this, -a);
     }
     BigNum& operator += (const BigNum& a) {
         *this = addition(*this, a);
