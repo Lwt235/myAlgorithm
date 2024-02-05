@@ -35,7 +35,7 @@ class BigNum {
     vector<int>integerPart;
     vector<int>fractionPart;
     string maxInf = "999999999999999.99";
-    
+
     //-1:a<b 0:a=b 1:a>b
     int bigNumCompare(const BigNum& a, const BigNum& b) const {
         int base = 1;
@@ -91,7 +91,7 @@ class BigNum {
                     ans.fractionPart[i] += 10;
                     ans.fractionPart[i + 1]--;
                 }
-            
+
             if (ans.fractionPart.back() >= 10) {
                 ans.fractionPart.back() -= 10;
                 if (ans.integerPart.size() == 0) ans.integerPart.emplace_back(1);
@@ -327,7 +327,7 @@ class BigNum {
         while (!ans.fractionPart.empty() && !ans.fractionPart[0]) ans.fractionPart.erase(ans.fractionPart.begin());
         return ans;
     }
-    
+
 public:
     //针对各类型的构造函数
     BigNum(const string& number = "") {
@@ -509,10 +509,12 @@ inline istream& operator >> (istream& in, BigNum& num) {
 }
 int main()
 {
-    ifstream in("TestData.in");
-    ofstream out("ResData.out");
-    BigNum num1;
-    long long num2;
-    while (in >> num1 >> num2) cout << num1 / num2 << endl;
-   
+    BigNum num1, num2;
+    //ifstream in("TestData.in");
+    //ofstream out("ResData.out");
+    while (cin >> num1 >> num2) {
+        BigNum ans = num1 / num2;
+        cout << ans << endl;
+        //cout << ans << endl;
+    }
 }
