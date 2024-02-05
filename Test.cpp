@@ -34,24 +34,37 @@ class BigNum {
     int sign;
     vector<int>integerPart;
     vector<int>fractionPart;
+    string maxInf = "999999999999999.99";
     
     //-1:a<b 0:a=b 1:a>b
     int bigNumCompare(const BigNum& a, const BigNum& b) const {
         int base = 1;
+
+        //特判+0,-0
+        if (a.integerPart.size() == 1 && a.fractionPart.empty() && b.integerPart.size() == 1 && b.fractionPart.empty() && a.integerPart[0] == 0 && b.integerPart[0] == 0) return 0;
 
         //处理负数情况
         if (a.sign == -1 && b.sign == -1) base = -1;
         else if (a.sign == -1) return -base;
         else if (b.sign == -1) return base;
 
+        //先比整数
         if (a.integerPart.size() < b.integerPart.size()) return -base;
         else if (a.integerPart.size() > b.integerPart.size()) return base;
         int cur = a.integerPart.size() - 1;
-        while (cur--) {
+        while (cur >= 0) {
             if (a.integerPart[cur] < b.integerPart[cur]) return -base;
             else if (a.integerPart[cur] > b.integerPart[cur]) return base;
+            cur--;
         }
-        return 0;
+
+        //再比小数
+        for (int aT = a.fractionPart.size() - 1, bT = b.fractionPart.size() - 1; aT >= 0 && bT >= 0; aT--, bT--) {
+            if (a.fractionPart[aT] < b.fractionPart[bT]) return -base;
+            else if (a.fractionPart[aT] > b.fractionPart[bT]) return base;
+        }
+        if (a.fractionPart.size() == b.fractionPart.size()) return 0;
+        else return (a.fractionPart.size() < b.fractionPart.size() ? -1 : 1) * base;
     }
 
     BigNum addition(const BigNum& a, const BigNum& b) const {
@@ -198,6 +211,71 @@ class BigNum {
         while (ans.integerPart.size() > 1 && !ans.integerPart.back()) ans.integerPart.pop_back();
         return ans;
     }
+    BigNum devision(const BigNum& a, const BigNum& b) const {
+        if (b == 0) return BigNum(maxInf);
+        BigNum ans, aFull, bFull;
+        ans.sign = a.sign * b.sign;
+        aFull.integerPart = a.fractionPart, bFull.integerPart = b.fractionPart;
+        while (aFull.integerPart.size() < bFull.integerPart.size()) aFull.integerPart.emplace(aFull.integerPart.begin(), 0);
+        while (aFull.integerPart.size() > bFull.integerPart.size()) bFull.integerPart.emplace(bFull.integerPart.begin(), 0);
+        for (int i = 0; i < a.integerPart.size(); i++)
+            aFull.integerPart.emplace_back(a.integerPart[i]);
+        for (int i = 0; i < b.integerPart.size(); i++)
+            bFull.integerPart.emplace_back(b.integerPart[i]);
+        while (!aFull.integerPart.empty() && !aFull.integerPart.back()) aFull.integerPart.pop_back();
+        while (!bFull.integerPart.empty() && !bFull.integerPart.back()) bFull.integerPart.pop_back();
+
+        if (aFull < bFull)
+            ans.integerPart = { 0 };
+        else if (aFull == bFull) {
+            ans.integerPart = { 1 };
+            return ans;
+        }
+        int Len = 0;
+        while (aFull > bFull) {
+            bFull.integerPart.emplace(bFull.integerPart.begin(), 0);
+            Len++;
+        }
+        Len--;
+        if (Len >= 0)
+            bFull.integerPart.erase(bFull.integerPart.begin());
+        while (Len >= 0) {
+            ans.integerPart.emplace(ans.integerPart.begin(), 0);
+            while (aFull >= bFull) {
+                aFull -= bFull;
+                ans.integerPart[0]++;
+            }
+            Len--;
+            if (Len < 0) break;
+            bFull.integerPart.erase(bFull.integerPart.begin());
+        }
+        int maxAccuracy = 16;
+        while ((aFull.integerPart.size() > 1 || aFull.integerPart[0] != 0) && maxAccuracy >= 0) {
+            aFull.integerPart.emplace(aFull.integerPart.begin(), 0);
+            ans.fractionPart.emplace(ans.fractionPart.begin(), 0);
+            while (aFull >= bFull) {
+                aFull -= bFull;
+                ans.fractionPart[0]++;
+            }
+            maxAccuracy--;
+        }
+        if (maxAccuracy < 0 && ans.fractionPart[0] >= 5) {
+            ans.fractionPart[1]++;
+            ans.fractionPart.erase(ans.fractionPart.begin());
+
+            int cur = 0;
+            while (cur < ans.fractionPart.size() && ans.fractionPart[cur] >= 10) {
+                ans.fractionPart[cur] -= 10;
+                ans.fractionPart[++cur]++;
+            }
+            if (ans.fractionPart.back() >= 10) {
+                ans.fractionPart.back() -= 10;
+                ans += 1;
+            }
+        }
+        while (!ans.fractionPart.empty() && !ans.fractionPart[0]) ans.fractionPart.erase(ans.fractionPart.begin());
+        return ans;
+    }
 
 public:
     //针对各类型的构造函数
@@ -226,34 +304,57 @@ public:
             integerPart[intLen - i - 1] = strInt[i] - '0';
         for (int i = 0; i < fracLen; i++)
             fractionPart[fracLen - i - 1] = strFrac[i] - '0';
+        while (!integerPart.size() > 1 && !integerPart.back()) integerPart.pop_back();
+        while (!fractionPart.empty() && !fractionPart[0]) fractionPart.erase(fractionPart.begin());
     }
-    BigNum(const long long& number) {
+    BigNum(const int& number) {
         sign = number < 0 ? -1 : 1;
-        long long num = sign * number;
+        int num = sign * number;
+        if (num == 0) integerPart.emplace_back(0);
         while (num) {
             integerPart.emplace_back(num % 10);
             num /= 10;
         }
     }
-    BigNum(const long double& number) {
+    BigNum(const long& number) {
         sign = number < 0 ? -1 : 1;
-        long double num = sign * number;
+        long num = sign * number;
+        if (num == 0) integerPart.emplace_back(0);
+        while (num) {
+            integerPart.emplace_back(num % 10);
+            num /= 10;
+        }
+    }
+    BigNum(const long long& number) {
+        sign = number < 0 ? -1 : 1;
+        long long num = sign * number;
+        if (num == 0) integerPart.emplace_back(0);
+        while (num) {
+            integerPart.emplace_back(num % 10);
+            num /= 10;
+        }
+    }
+    BigNum(const float& number) {
+        sign = number < 0 ? -1 : 1;
+        float num = sign * number;
         long long intPart = (long long)num;
-        long double fracPart = num - intPart * 1.0L;
+        if (intPart == 0) integerPart.emplace_back(0);
+        float fracPart = num - intPart * 1.0;
         while (intPart) {
             integerPart.emplace_back(intPart % 10);
             intPart /= 10;
         }
         int cur = 20;//最大提取位数
-        while (fracPart >= 1e-20L && cur--) {
+        while (fracPart >= 1e-20 && cur--) {
             fractionPart.emplace(fractionPart.begin(), (int)(fracPart * 10));
-            fracPart = fracPart * (10.0L) - (int)(fracPart * 10.0L);
+            fracPart = fracPart * (10.0) - (int)(fracPart * 10.0);
         }
     }
     BigNum(const double& number) {
         sign = number < 0 ? -1 : 1;
         double num = sign * number;
         long long intPart = (long long)num;
+        if (intPart == 0) integerPart.emplace_back(0);
         double fracPart = num - intPart * 1.0;
         while (intPart) {
             integerPart.emplace_back(intPart % 10);
@@ -263,6 +364,22 @@ public:
         while (fracPart >= 1e-20 && cur--) {
             fractionPart.emplace(fractionPart.begin(), (int)(fracPart * 10));
             fracPart = fracPart * (10.0) - (int)(fracPart * 10.0);
+        }
+    }
+    BigNum(const long double& number) {
+        sign = number < 0 ? -1 : 1;
+        long double num = sign * number;
+        long long intPart = (long long)num;
+        if (intPart == 0) integerPart.emplace_back(0);
+        long double fracPart = num - intPart * 1.0L;
+        while (intPart) {
+            integerPart.emplace_back(intPart % 10);
+            intPart /= 10;
+        }
+        int cur = 20;//最大提取位数
+        while (fracPart >= 1e-20L && cur--) {
+            fractionPart.emplace(fractionPart.begin(), (int)(fracPart * 10));
+            fracPart = fracPart * (10.0L) - (int)(fracPart * 10.0L);
         }
     }
 
@@ -284,6 +401,12 @@ public:
     const BigNum operator - (const BigNum& a) const {
         return addition(*this, -a);
     }
+    const BigNum operator * (const BigNum& a) const {
+        return multiplication(*this, a);
+    }
+    const BigNum operator / (const BigNum& a) const {
+        return devision(*this, a);
+    }
     BigNum& operator += (const BigNum& a) {
         *this = addition(*this, a);
         return *this;
@@ -292,15 +415,21 @@ public:
         *this = addition(*this, -a);
         return *this;
     }
-    const BigNum operator * (const BigNum& a) const {
-        return multiplication(*this, a);
-    }
     BigNum& operator *= (const BigNum& a) {
         *this = multiplication(*this, a);
         return *this;
     }
+    BigNum& operator /= (const BigNum& a) {
+        *this = devision(*this, a);
+        return *this;
+    }
     friend inline ostream& operator <<(ostream& out, const BigNum& num);
     friend inline istream& operator >>(istream& in, BigNum& num);
+
+    //设定无穷大的值(string类,使用十进制)
+    void setInf(string val) {
+        maxInf = val;
+    }
 };
 inline ostream& operator << (ostream& out, const BigNum& num) {
     if (num.sign == -1) out << "-";
@@ -326,7 +455,7 @@ int main()
     ifstream in("TestData.in");
     ofstream out("ResData.out");
     while (in >> num1 >> num2) {
-        BigNum ans = num1 * num2;
+        BigNum ans = num1 / num2;
         out << ans << endl;
         //cout << ans << endl;
     }

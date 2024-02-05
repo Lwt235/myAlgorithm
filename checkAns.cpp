@@ -28,9 +28,11 @@ int main()
 		uniform_int_distribution<long long>Intdist(0, base[intLen] - 1), Fracdist(0, base[fracLen] - 1);
 		long double testData0 = (Intdist(gen) + Fracdist(gen) * 1.0L / base[fracLen]) * (sgn(gen) ? 1.0L : -1.0L);
 		long double testData1 = (Intdist(gen) + Fracdist(gen) * 1.0L / base[fracLen]) * (sgn(gen) ? 1.0L : -1.0L);
+		while (!testData1)
+			testData1 = (Intdist(gen) + Fracdist(gen) * 1.0L / base[fracLen]) * (sgn(gen) ? 1.0L : -1.0L);
 		testfile << fixed << setprecision(16) << testData0 << " " << testData1 << endl;
-		resfile << fixed << setprecision(16) << testData0 * testData1 << endl;
-		printf("%33.16Lf + %33.16Lf = %34.16Lf\n", testData0, testData1, testData0 * testData1);
+		resfile << fixed << setprecision(16) << testData0 / testData1 << endl;
+		printf("%33.16Lf / %33.16Lf = %34.16Lf\n", testData0, testData1, testData0 / testData1);
 	}
 	cout << "数据生成完成，执行测试程序:" << endl;
 	double startTime = clock();
@@ -47,7 +49,7 @@ int main()
 			cout << fixed << setprecision(16) << "Correct\tAbsoluteDifference: " << fabsl(a - b) << endl;
 		else {
 			SetColorAndBackground(4, 0);
-			cout << fixed << setprecision(16) << "WrongAnswer: Find \"" << b << "\"but the answer is \"" << a << "\"" << endl;
+			cout << fixed << setprecision(16) << "WrongAnswer: Find \"" << b << "\" but the answer is \"" << a << "\"" << endl;
 			SetColorAndBackground();
 			system("pause");
 			return 0;
