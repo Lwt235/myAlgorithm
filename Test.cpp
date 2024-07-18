@@ -27,28 +27,7 @@ int find(int l, int r, int v) {
 	return res;
 }
 void solve() {
-	int K = read(), N = read();
-	vector<int>(K + 1).swap(Coin);
-	for (int i = 1; i <= K; i++) Coin[i] = read();
-	vector<int>(N + 1).swap(sumCost);
-	for (int i = 1; i <= N; i++) sumCost[i] = sumCost[i - 1] + read();
-	vector<int>dp(1 << K);
-	int ans = -1;
-	for (int i = 0; i < (1 << K); i++) {
-		for (int j = 1; j <= K; j++) {
-			if ((i >> j - 1) & 1) continue;
-			dp[i | (1 << j - 1)] = max(dp[i | (1 << j - 1)], find(dp[i], N, Coin[j]));
-		}
-		if (dp[i] == N) {
-			int sum = 0;
-			for (int j = 1; j <= K; j++) {
-				if ((i >> j - 1) & 1) continue;
-				sum += Coin[j];
-			}
-			ans = max(ans, sum);
-		}
-	}
-	cout << ans;
+	
 }
 int main()
 {
