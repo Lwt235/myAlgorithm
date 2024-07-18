@@ -31,7 +31,7 @@ vector<int> Dijkstra(const vector<vector<edge>>& Edge, int n, int start)
 	vector<int>dist(n + 1, INF);
 	vector<bool>vis(n + 1, false);
 	priority_queue<node>Qu;
-	dist[start] = 0; Qu.push(node(start, 0));
+	dist[start] = 0; Qu.emplace(start, 0);
 	while (!Qu.empty())
 	{
 		node selected = Qu.top(); Qu.pop();
@@ -44,7 +44,7 @@ vector<int> Dijkstra(const vector<vector<edge>>& Edge, int n, int start)
 				if (dist[selected.to] != INF && dist[selected.to] + Edge[selected.to][i].weight < dist[Edge[selected.to][i].to])
 				{
 					dist[Edge[selected.to][i].to] = dist[selected.to] + Edge[selected.to][i].weight;
-					Qu.push(node(Edge[selected.to][i].to, dist[Edge[selected.to][i].to]));
+					Qu.emplace(Edge[selected.to][i].to, dist[Edge[selected.to][i].to]);
 				}	
 		}
 	}

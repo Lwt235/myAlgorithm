@@ -9,25 +9,51 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\源文件">
+    <Filter Include="源文件">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ResData.out">
-      <Filter>头文件\源文件</Filter>
+      <Filter>源文件</Filter>
     </None>
     <None Include="TestData.in">
-      <Filter>头文件\源文件</Filter>
+      <Filter>源文件</Filter>
     </None>
     <None Include="TestData.out">
-      <Filter>头文件\源文件</Filter>
+      <Filter>源文件</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Test.cpp">
-      <Filter>头文件\源文件</Filter>
+      <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="binaryTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="union_find_sets.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="mySort.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Expression.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="bipartiteGraph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="basicGraph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Thesis.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
